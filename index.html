@@ -197,8 +197,8 @@ async function fast(sp){
   const w=v.videoWidth&~1,h=v.videoHeight&~1;
   const k=document.createElement('canvas');k.width=w;k.height=h;const g=k.getContext('2d');
   let cfg=null;
-  for(const codec of ['avc1.640033','avc1.640028','avc1.42001f']){
-    const c0={codec,width:w,height:h,bitrate:8e6,framerate:30};
+  for(const codec of (w*h>2088960?['avc1.640033']:['avc1.640028','avc1.4d0028','avc1.42001f'])){
+    const c0={codec,width:w,height:h,bitrate:8e6,framerate:30,avc:{format:'avc'}};
     try{if((await VideoEncoder.isConfigSupported(c0)).supported){cfg=c0;break}}catch(e){}
   }
   if(!cfg)return msg('Không có bộ mã hóa H.264 phù hợp.');
@@ -212,7 +212,7 @@ async function fast(sp){
     }catch(e){ab=null;ac=null}
   }
   const target=new Mp4Muxer.ArrayBufferTarget();
-  const mux=new Mp4Muxer.Muxer({target,fastStart:'in-memory',video:{codec:'avc',width:w,height:h},...(ab?{audio:{codec:'aac',numberOfChannels:nch,sampleRate:ab.sampleRate}}:{})});
+  const mux=new Mp4Muxer.Muxer({target,fastStart:'in-memory',firstTimestampBehavior:'offset',video:{codec:'avc',width:w,height:h},...(ab?{audio:{codec:'aac',numberOfChannels:nch,sampleRate:ab.sampleRate}}:{})});
   const ve=new VideoEncoder({output:(ch,m)=>mux.addVideoChunk(ch,m),error:e=>msg('Lỗi mã hóa: '+e.message)});
   ve.configure(cfg);
   let ae=null;
@@ -235,7 +235,10 @@ async function fast(sp){
     msg('Đang hoàn tất file...');
     try{
       await ve.flush();if(ae)await ae.flush();mux.finalize();
-      sv(new Blob([target.buffer],{type:'video/mp4'}),'stamped.mp4');
+      const bl=new Blob([target.buffer],{type:'video/mp4'});sv(bl,'stamped.mp4');
+      {const tv=document.createElement('video');tv.muted=true;tv.preload='metadata';const info=(bl.size/1048576).toFixed(1)+' MB, '+cfg.codec+(ab?', có âm thanh':', không âm thanh');
+       const done=ok=>msg('Xong trong '+((performance.now()-t0)/1000).toFixed(0)+' giây. '+info+'. Phát thử: '+ok);
+       tv.onloadedmetadata=()=>done('OK, dài '+tv.duration.toFixed(1)+'s');tv.onerror=()=>done('LỖI giải mã (mã '+(tv.error&&tv.error.code)+')');tv.src=URL.createObjectURL(bl);setTimeout(()=>{if(!tv.readyState)done('không phản hồi')},6000)}
       msg('Xong trong '+((performance.now()-t0)/1000).toFixed(0)+' giây. Đã tải file về.');
     }catch(e){msg('Lỗi khi ghép file: '+e.message)}
     rec=null;$('rend').textContent='Render video & tải về';$('prog').value=0;
