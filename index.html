@@ -1,244 +1,266 @@
 <!DOCTYPE html>
-<html lang="vi"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Thiết kế chậu từ tấm gấp nếp</title>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Text Grid</title>
 <style>
-:root{--bg:#fafaf7;--fg:#1d1d1b;--mut:#6b6b66;--card:#fff;--bd:#d9d9d2;--ac:#2f7d4f;--ok:#2f7d4f;--mid:#b7791f;--bad:#c0392b;--fill:#e6f2ea;--soil:#b08968;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#ececE6;--mut:#a0a09a;--card:#222220;--bd:#3a3a36;--ac:#6cc28c;--ok:#6cc28c;--mid:#e0a84a;--bad:#ef7b6e;--fill:#27382e;--soil:#7a5a40}}
-:root[data-theme="dark"]{--bg:#171716;--fg:#ececE6;--mut:#a0a09a;--card:#222220;--bd:#3a3a36;--ac:#6cc28c;--ok:#6cc28c;--mid:#e0a84a;--bad:#ef7b6e;--fill:#27382e;--soil:#7a5a40}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:720px;margin-inline:auto}
-h1{font-size:19px;margin:4px 0 12px}h2{font-size:15px;margin:0 0 8px;color:var(--ac)}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-label{display:flex;flex-direction:column;font-size:12.5px;color:var(--mut);gap:3px}
-input,select{font:inherit;font-size:16px;padding:7px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}
-.res{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
-.res b{text-align:right}
-.cmp{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:4px 8px;font-size:13.5px}
-.cmp .hd{color:var(--mut);font-size:12px}.cmp .cur{font-weight:700}.cmp .best{color:var(--ok);font-weight:700}
-svg text{fill:var(--fg);font-family:system-ui,sans-serif}
-.note{font-size:12.5px;color:var(--mut);margin:6px 0 0}
-.pl{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;font-size:14px}
-.tag{padding:2px 10px;border-radius:99px;font-size:12.5px;font-weight:600;text-align:center;border:1px solid currentColor}
-.t0{color:var(--bad)}.t1{color:var(--mid)}.t2{color:var(--ok)}
-.sub{font-size:12px;color:var(--mut);display:block;font-weight:400}
-.lk{background:none;border:0;color:var(--bad);font-size:12px;padding:0 0 0 8px;cursor:pointer}
-.warn{color:var(--bad);font-weight:600}.good{color:var(--ok);font-weight:600}
-</style></head><body>
-<h1>Chậu loe gấp từ 1 tấm dài</h1>
+:root{--bg:#f6f6f4;--fg:#1d1d1b;--card:#fff;--bd:#d9d9d4;--ac:#d9480f}
+@media(prefers-color-scheme:dark){:root{--bg:#161615;--fg:#eeeeea;--card:#222220;--bd:#3a3a37;--ac:#ff8a4c}}
+*{box-sizing:border-box}
+body{margin:0;font:14px system-ui,sans-serif;background:var(--bg);color:var(--fg);padding:12px;max-width:1000px;margin-inline:auto}
+h1{font-size:18px;margin:0 0 10px}
+.wrap{position:relative;background:#000;border-radius:8px;overflow:hidden}
+video{display:block;width:100%;height:auto;min-height:180px}
+canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;margin-top:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.s{display:grid;grid-template-columns:90px 1fr 44px;gap:8px;align-items:center;margin-top:8px}
+.s output{text-align:right;font-variant-numeric:tabular-nums;opacity:.8}
+input,button{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:5px 8px}
+input[type=text]{min-width:0;flex:1}
+input[type=range]{width:100%;padding:0;accent-color:var(--ac)}
+input[type=color]{padding:0;width:36px;height:30px}
+button{cursor:pointer}
+label{display:flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<h1>Video Text Grid</h1>
 
-<div class="card"><h2>1. Tấm bạn đang có</h2><div class="grid">
-<label>Rộng tấm (cm)<input id="sw" type="number" step="0.5" value="25"></label>
-<label>Dài tấm (cm)<input id="sl" type="number" step="1" value="200"></label>
-<label>Mép dán thêm (cm)<input id="ov" type="number" step="0.5" value="0"></label>
-<label>Cao tấm vách muốn dùng (trống = hết bề rộng)<input id="hc" type="number" step="0.5" placeholder="tự động"></label>
-</div></div>
+<div class="row" style="margin-bottom:8px">
+  <input type="file" id="file" accept="video/*,image/*">
+  <input type="text" id="url" placeholder="hoặc dán link video/ảnh">
+  <button id="load">Tải</button>
+  <button id="demo">Nền thử</button>
+</div>
 
-<div class="card"><h2>2. Chậu muốn làm</h2><div class="grid">
-<label style="grid-column:1/-1">Dạng chậu<select id="shape"><option value="p">Đa giác (vuông, lục giác...): nhập cạnh</option><option value="r">Tròn: nhập đường kính</option></select></label>
-<label id="lbm" style="grid-column:1/-1;display:none">Cách làm chậu tròn<select id="meth"><option value="c">Cuộn thành phễu rồi cắt phần thừa</option><option value="f">Gấp nhiều nếp nhỏ</option></select></label>
-<label><span id="lb">Cạnh đáy (cm)</span><input id="b" type="number" step="0.5" value="25"></label>
-<label><span id="lt">Cạnh miệng (cm)</span><input id="t" type="number" step="0.5" value="30"></label>
-<label id="lbn">Số cạnh<select id="n"><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select></label>
-<label id="lbnp" style="display:none">Số nếp nhỏ khi gấp từ tấm thẳng<input id="np" type="number" step="1" value="12"></label>
-<label>Dày vách (cm)<input id="th" type="number" step="0.1" value="0.2"></label>
-<label>Chừa mép trên miệng (%)<input id="fill" type="number" value="10"></label>
-</div></div>
+<div class="wrap" id="wrap">
+  <img id="im" alt="" style="display:none;width:100%;height:auto">
+  <video id="v" playsinline preload="metadata" loop></video>
+  <canvas id="c"></canvas>
+</div>
 
-<div class="card" id="c3"><h2 id="h3">3. Bản vẽ tấm cần gấp</h2>
-<div id="svgbox"></div><div id="status" class="note"></div>
-<div id="marks" class="note"></div>
-<ol class="note" style="padding-left:18px">
-<li>Cắt tấm đúng kích thước dài × cao ghi ở trên, không cắt hình thang.</li>
-<li>Đánh dấu các điểm ở mép trên và mép dưới theo số đo trên, nối thành tam giác nếp, kẻ đường đứt ở giữa.</li>
-<li>Gấp đôi theo đường đứt, hai cạnh chéo trùng nhau, hai vách hai bên chạm nhau tại góc. Dán hoặc ghim hai lớp nếp.</li>
-<li>Dựng thành vòng, nối hai đầu tấm (là hai nửa nếp ghép lại), ép các nếp áp sát vách ngoài cùng chiều, gắn đáy.</li></ol>
-<p class="note">Hợp vật liệu gấp được: vải bạt, nhựa mỏng, bìa cứng, da. Ván hoặc tôn dày nên cắt rời.</p></div>
+<div class="card row" id="ctl">
+  <button id="pp">▶</button>
+  <input type="range" id="seek" min="0" max="1000" value="0" style="flex:1">
+  <span id="time">0:00</span>
+</div>
 
-<div class="card" id="seccard" style="display:none"><h2 id="h3b">3b. Cách khác cho chậu tròn: cắt cong thành hình quạt</h2>
-<div id="secbox"></div><div id="secinfo" class="note"></div></div>
+<div class="card">
+  <div class="row">
+    <input type="text" id="txt" value="MARKER" placeholder="Nhập text">
+    <input type="color" id="col" value="#ffffff">
+    <label><input type="checkbox" id="stag"> So le</label>
+    <label><input type="checkbox" id="grid"> Viền ô</label>
+  </div>
+  <div id="sl"></div>
+</div>
 
-<div class="card"><h2>4. Hình mặt cắt và nhìn từ trên</h2><div class="g2"><div id="csbox"></div><div id="planbox"></div></div>
-<p class="note">Mặt cắt đi qua tâm chậu. Nét liền là miệng, nét đứt là đáy.</p></div>
+<div class="card">
+  <div class="row">
+    <button id="png">Tải ảnh PNG</button>
+    <button id="rend">Render video & tải về</button>
+    <label><input type="checkbox" id="aud" checked> Giữ âm thanh</label>
+    <select id="mode"><option value="rt">Thời gian thực</option><option value="w1">WebCodecs x1</option><option value="w2">WebCodecs x2</option><option value="w4">WebCodecs x4</option><option value="w8">WebCodecs x8</option></select>
+    <progress id="prog" max="1" value="0" style="flex:1;min-width:80px"></progress>
+  </div>
+  <small id="msg" style="opacity:.7;display:block;margin-top:6px">Render chạy theo thời gian thực: giữ tab ở phía trước và đợi đến khi xong. Âm thanh vẫn phát ra trong lúc render.</small>
+</div>
 
-<div class="card"><h2>5. Kết quả chậu</h2><div class="res" id="res"></div></div>
-
-<div class="card"><h2>6. So sánh các dạng cùng 1 tấm</h2>
-<div class="cmp" id="cmp"></div><p class="note" id="cmpnote"></p></div>
-
-<div class="card"><h2>7. Trồng được cây nào</h2><div class="pl" id="pl"></div>
-<label style="flex-direction:row;align-items:center;gap:8px;margin:8px 0"><input type="checkbox" id="hideBad" style="width:auto"> Ẩn cây không hợp</label>
-<p class="note" id="plnote"></p>
-<details style="margin-top:10px"><summary>Thêm cây của bạn</summary><div class="grid" style="margin-top:8px">
-<label>Tên cây<input id="cn" type="text"></label>
-<label>Rễ ăn sâu (cm, ví dụ 30-50)<input id="croot" type="text"></label>
-<label>Thể tích tối thiểu (lít)<input id="clo" type="number" step="0.5"></label>
-<label>Thể tích để cây tốt (lít)<input id="chi" type="number" step="0.5"></label>
-<label>Độ sâu đất cần (cm)<input id="cdp" type="number" step="1"></label>
-<label>&nbsp;<button onclick="addPlant()" style="padding:9px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;font:inherit">Thêm</button></label></div>
-<p class="note">Cây bạn thêm được lưu trong trình duyệt của riêng bạn trên thiết bị này.</p></details></div>
-
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.js"></script>
 <script>
-const $=id=>document.getElementById(id),f=(x,d=1)=>(+x).toFixed(d).replace('.',','),PI=Math.PI;
-function rate(v,lo,hi){return v<lo?0:v<hi?1:2}
-const BASE=[
- {n:'Ớt hiểm',lo:4,hi:8,dp:20,root:'30-50',big:[15,'2 cây/chậu hoặc 1 bụi to']},
- {n:'Ớt ngọt dài',lo:8,hi:14,dp:25,root:'40-60'},
- {n:'Ớt chuông',lo:10,hi:17,dp:30,root:'40-60'},
- {n:'Cà chua lùn / cherry bụi',lo:12,hi:18,dp:30,root:'60-100'},
- {n:'Cà chua leo',lo:20,hi:28,dp:40,root:'90-150',note:'1 cây/chậu, tỉa còn 1-2 thân'},
- {n:'Cà tím',lo:15,hi:25,dp:30,root:'60-90'},
- {n:'Dưa leo (leo giàn)',lo:15,hi:25,dp:30,root:'60-100',note:'1 cây/chậu, cắm giàn'},
- {n:'Đậu cô ve (leo)',lo:6,hi:12,dp:25,root:'40-60',big:[15,'2-3 cây/chậu']},
- {n:'Cà rốt',lo:4,hi:8,dp:30,root:'30-50',note:'gieo thẳng, thưa còn 5-8 cm/cây'},
- {n:'Dâu tây',lo:3,hi:6,dp:18,root:'20-30',big:[10,'2-3 cây/chậu']},
- {n:'Xà lách',lo:2,hi:4,dp:15,root:'15-25',big:[8,'3-4 cây/chậu']},
- {n:'Húng quế / rau thơm',lo:2,hi:5,dp:15,root:'20-30',big:[8,'2-3 cây/chậu']},
- {n:'Hành lá',lo:1,hi:3,dp:15,root:'10-20',big:[8,'nhiều gốc/chậu']},
- {n:'Chanh (giống lùn)',lo:25,hi:40,dp:40,root:'60-100',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Cam / quýt lùn',lo:30,hi:50,dp:40,root:'60-100',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Lựu lùn',lo:25,hi:40,dp:40,root:'60-100',note:'1 cây/chậu'},
- {n:'Ổi lùn',lo:30,hi:50,dp:45,root:'80-120',note:'1 cây/chậu, tỉa giữ thấp'},
- {n:'Đu đủ lùn',lo:40,hi:60,dp:50,root:'60-100',note:'1 cây/chậu'},
- {n:'Na (mãng cầu) lùn / ghép',lo:40,hi:70,dp:50,root:'80-120',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Khế ngọt lùn',lo:40,hi:70,dp:50,root:'80-120',note:'1 cây/chậu'},
- {n:'Chuối lùn',lo:40,hi:80,dp:50,root:'50-80',note:'1 cây/chậu'},
- {n:'Thanh long',lo:40,hi:70,dp:40,root:'30-50',note:'1 cây/chậu, cần trụ leo'},
- {n:'Nhãn lùn',lo:60,hi:100,dp:60,root:'100-150',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Xoài lùn',lo:60,hi:100,dp:60,root:'100-200',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Bưởi lùn',lo:50,hi:100,dp:60,root:'100-150',note:'1 cây/chậu, chọn cây ghép'},
- {n:'Mít lùn (mít siêu sớm)',lo:60,hi:120,dp:60,root:'100-200',note:'1 cây/chậu, chọn cây ghép'}];
-let custom=[];try{custom=JSON.parse(localStorage.getItem('chauCustom')||'[]')}catch(e){}
-function saveC(){try{localStorage.setItem('chauCustom',JSON.stringify(custom))}catch(e){}}
-function addPlant(){
- const n=$('cn').value.trim(),lo=+$('clo').value,hi=+$('chi').value,dp=+$('cdp').value,root=$('croot').value.trim()||'?';
- if(!n||!(lo>=0)||!(hi>=lo)||!(dp>0)){alert('Nhập đủ tên, thể tích tối thiểu, thể tích tốt (≥ tối thiểu) và độ sâu đất.');return}
- custom.push({n:n,lo:lo,hi:hi,dp:dp,root:root});saveC();['cn','clo','chi','cdp','croot'].forEach(i=>$(i).value='');calc()}
-function delPlant(i){custom.splice(i,1);saveC();calc()}
+const $=id=>document.getElementById(id);
+const v=$('v'),c=$('c'),ctx=c.getContext('2d');
 
-// Hình học chung: Pb, Pt = chu vi đáy và miệng; r = bán kính (tròn) hoặc trung đoạn (đa giác)
-function geom(shape,n,Pb,Pt,hp,th,fl){
- const tn=Math.tan(PI/n),c=shape==='r'?PI:n*tn;
- const rb=shape==='r'?Pb/(2*PI):Pb/(2*n*tn),rt=shape==='r'?Pt/(2*PI):Pt/(2*n*tn),dr=rt-rb;
- if(hp<=dr)return null;
- const H=Math.sqrt(hp*hp-dr*dr),Hi=Math.max(H-th,0.1),ib=Math.max(rb-th,0.05),it=Math.max(rt-th,0.05),Ab=c*ib*ib,At=c*it*it;
- const Vi=Hi/3*(Ab+At+Math.sqrt(Ab*At))/1000;
- return {rb:rb,rt:rt,dr:dr,H:H,Hi:Hi,Vi:Vi,Vu:Vi*(1-fl),Sd:Hi*(1-fl)}}
+const S=[
+  ['cols','Số cột',1,30,5,1],
+  ['rows','Số hàng',1,30,3,1],
+  ['ang','Xoay chữ°',-180,180,0,1],
+  ['gang','Xoay lưới°',-180,180,0,1],
+  ['size','Cỡ chữ %',1,30,6,0.5],
+  ['op','Độ mờ %',5,100,70,5]
+];
+const P={};
+$('sl').innerHTML=S.map(([k,l,mn,mx,d,st])=>
+  `<div class="s"><span>${l}</span><input type="range" id="${k}" min="${mn}" max="${mx}" step="${st}" value="${d}"><output id="o_${k}">${d}</output></div>`).join('');
+const KEY='vtg-v1';
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){for(const k in s){const e=$(k);if(!e)continue;e.type==='checkbox'?e.checked=s[k]:e.value=s[k]}}}catch(e){}
 
-function sectorGeom(rb,rt,hp){const dr=rt-rb;if(dr<0.05)return {cyl:true,bw:2*PI*rt,bh:hp};
- const Lt=hp*rt/dr,Lb=hp*rb/dr,th=2*PI*dr/hp,half=th/2;
- return {Lt:Lt,Lb:Lb,th:th,bw:th>PI?2*Lt:2*Lt*Math.sin(half),bh:Lt-(th>PI?Lt*Math.cos(half):Lb*Math.cos(half))}}
-function fitRoll(rb,rt,hp0,sw,room){for(let hp=hp0;hp>rt-rb+0.2;hp-=0.1){const q=sectorGeom(rb,rt,hp);if(q.bh<=sw+1e-9&&q.bw<=room+1e-9)return hp}return null}
-
-function calc(){
- const rnd=$('shape').value==='r';
- const roll=rnd&&$('meth').value==='c';$('lbm').style.display=rnd?'':'none';$('lbn').style.display=rnd?'none':'';$('lbnp').style.display=(rnd&&!roll)?'':'none';$('c3').style.display=roll?'none':'';
- $('lb').textContent=rnd?'Đường kính đáy (cm)':'Cạnh đáy (cm)';$('lt').textContent=rnd?'Đường kính miệng (cm)':'Cạnh miệng (cm)';
- $('h3').textContent=rnd?'3. Gấp nhiều nếp nhỏ từ tấm thẳng (xấp xỉ hình tròn)':'3. Bản vẽ tấm cần gấp';
- const sw=+$('sw').value,sl=+$('sl').value,ov=+$('ov').value||0,hcv=+$('hc').value,B=+$('b').value,T=+$('t').value,th=+$('th').value||0,fl=(+$('fill').value||0)/100;
- const n=rnd?Math.round(+$('np').value||12):+$('n').value;
- const clear=m=>{['svgbox','marks','res','pl','cmp','csbox','planbox','secbox','secinfo'].forEach(i=>$(i).innerHTML='');$('seccard').style.display='none';$('status').innerHTML=m?'<span class="warn">'+m+'</span>':'';$('c3').style.display=''};
- if(!(sw>0&&sl>0&&B>0&&T>0&&n>=3)){clear('Nhập đủ số đo (số nếp tối thiểu 3).');return}
- if(T<B){clear('Miệng phải lớn hơn hoặc bằng đáy để gấp nếp.');return}
- const hp0=hcv>0?Math.min(hcv,sw):sw,shape=rnd?'r':'p';let hp=hp0;
- if(roll){if(T<B){}const hr=fitRoll(B/2,T/2,hp0,sw,sl-ov);if(hr===null){clear('Không cuộn rồi cắt được với tấm này: giảm độ loe (miệng gần đáy hơn), tăng bề rộng tấm hoặc tăng chiều dài tấm.');return}hp=hr}
- const Pb=rnd?PI*B:n*B,Pt=rnd?PI*T:n*T;
- const g=geom(shape,n,Pb,Pt,hp,th,fl);
- if(!g){clear('Tấm quá hẹp so với độ loe: tăng bề rộng tấm hoặc giảm miệng.');return}
- const bs=Pb/n,ts=Pt/n,w=(ts-bs)/2,L=Math.hypot(hp,w),len=Pt+ov,d=hp*w/L;
- // ---- bản vẽ tấm gấp nếp
- {const fs=Math.max(Pt,hp)/34,pad=fs,vw=len+2*pad,vh=hp+2*pad+fs*1.5,top=pad+fs*1.5,sk=fs/9;
- const X=x=>pad+x,Y=y=>top+y;
- let s='<defs><clipPath id="cp"><rect x="'+X(0)+'" y="'+Y(0)+'" width="'+Pt+'" height="'+hp+'"/></clipPath></defs>';
- s+='<rect x="'+X(0)+'" y="'+Y(0)+'" width="'+Pt+'" height="'+hp+'" fill="var(--fill)" stroke="currentColor" stroke-width="'+sk+'"/><g clip-path="url(#cp)">';
- for(let j=0;j<=n;j++){const x=j*ts;s+='<polygon points="'+X(x)+','+Y(0)+' '+X(x-w)+','+Y(hp)+' '+X(x+w)+','+Y(hp)+'" fill="var(--ac)" fill-opacity=".4" stroke="currentColor" stroke-width="'+sk+'"/>'}
- s+='</g>';
- for(let j=1;j<n;j++)s+='<line x1="'+X(j*ts)+'" y1="'+Y(0)+'" x2="'+X(j*ts)+'" y2="'+Y(hp)+'" stroke="currentColor" stroke-width="'+sk+'" stroke-dasharray="'+fs/2+' '+fs/3+'"/>';
- const vf=Math.min(fs*1.1,ts/6);
- if(n<=10)for(let i=0;i<n;i++)s+='<text x="'+X(i*ts+ts/2)+'" y="'+Y(hp*0.4)+'" font-size="'+vf+'" text-anchor="middle">Vách '+(i+1)+'</text>';
- if(ov>0)s+='<rect x="'+X(Pt)+'" y="'+Y(0)+'" width="'+ov+'" height="'+hp+'" fill="none" stroke="currentColor" stroke-dasharray="'+fs/3+' '+fs/3+'" stroke-width="'+sk+'"/>';
- s+='<text x="'+X(len/2)+'" y="'+(Y(0)-fs*0.5)+'" font-size="'+fs+'" text-anchor="middle">Dài '+f(len)+' cm</text>';
- s+='<text x="'+X(len/2)+'" y="'+(Y(hp)+fs*1.2)+'" font-size="'+fs+'" text-anchor="middle">Cao '+f(hp)+' cm</text>';
- $('svgbox').innerHTML='<svg viewBox="0 0 '+vw+' '+vh+'" style="width:100%;height:auto">'+s+'</svg>';
- const okL=len<=sl,maxT=(sl-ov)/(rnd?PI:n);
- $('status').innerHTML='Tấm cần cắt: <b>'+f(len)+' × '+f(hp)+' cm</b>'+(rnd?' ('+n+' nếp nhỏ, mỗi nếp đáy '+f(ts-bs)+' cm)':'')+'. '+(okL?'<span class="good">Vừa tấm '+f(sw)+'×'+f(sl)+' cm, dư '+f(sl-len)+' cm dài'+(sw>hp?' và '+f(sw-hp)+' cm rộng':'')+'.</span>':'<span class="warn">Thiếu '+f(len-sl)+' cm dài. Với tấm này '+(rnd?'đường kính miệng':'cạnh miệng')+' tối đa '+f(maxT)+' cm.</span>');
- const tops=[],bots=[];
- for(let j=0;j<=n;j++){tops.push(f(j*ts));bots.push(f(Math.max(0,j*ts-w))+'–'+f(Math.min(Pt,j*ts+w)))}
- $('marks').innerHTML=n>16?'Với '+n+' nếp: nếp thứ j có đỉnh ở mép trên tại j × '+f(ts,2)+' cm, chân nếp rộng '+f(ts-bs,2)+' cm ở mép dưới (từ j × '+f(ts,2)+' trừ/cộng '+f(w,2)+' cm). Hai nửa nếp ở hai đầu ghép lại thành nếp cuối.':
- '<b>Đánh dấu từ mép trái (cm):</b><br>Mép trên, đỉnh nếp: '+tops.join(' · ')+'<br>Mép dưới, chân nếp từ–đến: '+bots.join(' · ')+'<br>Nếp rộng '+f(ts-bs)+' cm ở mép dưới, nhọn dần lên mép trên. Hai nửa nếp ở hai đầu tấm ghép lại thành nếp cuối.'}
- // ---- hình quạt cho chậu tròn
- $('seccard').style.display=rnd?'':'none';
- if(rnd){
-  $('h3b').textContent=roll?'3. Cuộn thành phễu rồi cắt phần thừa':'3b. Cách khác cho chậu tròn: cắt cong thành hình quạt';
-  if(g.dr<0.05){$('secbox').innerHTML='';$('secinfo').innerHTML='Miệng gần bằng đáy, chậu gần như hình trụ: chỉ cần tấm chữ nhật dài '+f(PI*B+ov)+' × cao '+f(hp)+' cm, cuộn lại là xong, không cần cắt quạt.'}
-  else{const sg=sectorGeom(g.rb,g.rt,hp),Lt=sg.Lt,Lb=sg.Lb,th2=sg.th,half=th2/2,bw=sg.bw,bh=sg.bh;
-   const pts=[];for(let i=0;i<=60;i++){const a=-half+th2*i/60;pts.push([Lt*Math.sin(a),Lt*Math.cos(a)])}
-   for(let i=60;i>=0;i--){const a=-half+th2*i/60;pts.push([Lb*Math.sin(a),Lb*Math.cos(a)])}
-   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),y1=Math.max(...ys);
-   const pd=Math.max(bw,bh)*0.04,fs=Math.max(bw+ov,sw)/30,oy=pd+fs*1.5,sh=roll?sw:bh,dy=roll?(sw-bh)/2:0,sx=roll?ov/2:0;
-   const path='M'+pts.map(p=>(p[0]-x0+pd+sx).toFixed(2)+','+(y1-p[1]+oy+dy).toFixed(2)).join(' L')+' Z';
-   const W=bw+(roll?ov:0);
-   $('secbox').innerHTML='<svg viewBox="0 0 '+(W+2*pd)+' '+(sh+oy+pd+fs*2)+'" style="width:100%;max-height:360px">'+
-    (roll?'<rect x="'+pd+'" y="'+oy+'" width="'+W+'" height="'+sw+'" fill="var(--bad)" fill-opacity=".15" stroke="currentColor" stroke-width="'+fs/10+'"/>':'')+
-    '<path d="'+path+'" fill="var(--fill)" stroke="currentColor" stroke-width="'+fs/9+'"/>'+
-    '<text x="'+(W/2+pd)+'" y="'+(oy-fs*0.5)+'" font-size="'+fs+'" text-anchor="middle">'+(roll?'Tấm '+f(W)+' × '+f(sw)+' cm (xanh: giữ lại, đỏ nhạt: cắt bỏ)':'Khung bao '+f(bw)+' × '+f(bh)+' cm')+'</text></svg>';
-   if(roll){$('secinfo').innerHTML='<b>Cách làm:</b> cắt tấm dài '+f(W)+' cm, rộng '+f(sw)+' cm. Cuộn thành phễu có miệng Ø'+f(T)+' cm, đáy Ø'+f(B)+' cm, chồng mép '+f(ov)+' cm, dán hoặc ghim dọc một đường thẳng. Úp chậu trên mặt phẳng, đánh dấu một vòng ở độ cao đều nhau rồi cắt theo vạch, làm lần lượt đáy rồi miệng. Hai đường cắt cong chính là hai cung của hình quạt.<br>Cao vách tối đa '+f(hp)+' cm'+(hp<hp0-0.05?', thấp hơn '+f(hp0-hp)+' cm so với tấm '+f(hp0)+' cm, vì hai đầu cong của phễu bị cắt bỏ. Muốn cao hơn: tấm rộng hơn, hoặc miệng gần đáy hơn.':'.')+' Góc quạt '+f(th2*180/PI)+'°.'}
-   else{const fit=(bw<=sw&&bh<=sl)||(bw<=sl&&bh<=sw);
-   $('secinfo').innerHTML='Cung ngoài (miệng) bán kính '+f(Lt)+' cm, cung trong (đáy) bán kính '+f(Lb)+' cm, góc quạt '+f(th2*180/PI)+'°. Khung bao '+f(bw)+' × '+f(bh)+' cm: '+(fit?'<span class="good">vừa tấm '+f(sw)+'×'+f(sl)+' cm.</span>':'<span class="warn">không vừa tấm '+f(sw)+'×'+f(sl)+' cm.</span>')+' Quạt phải cắt cong nên hao vật liệu hơn gấp nếp, nhưng vách trơn, không có nếp.'}}}
- // ---- mặt cắt
- {const H=g.H,Wt=2*g.rt,Wb=2*g.rb,fs=Math.max(Wt,H)/24,pad=fs*2,vw=Wt+pad*2+fs*5,vh=H+pad*2+fs*2,ox=pad+fs*4,oy=pad+fs;
-  const xl=ox,xr=ox+Wt,xbl=ox+(Wt-Wb)/2,xbr=xbl+Wb,yb=oy+H,sk=Math.max(th,fs/7),ys=oy+H-th-g.Sd;
-  const fr=(y)=>{const u=(y-oy)/H;return [ox+(Wt-(Wt-(Wt-Wb)*u))/2, ox+(Wt+(Wt-(Wt-Wb)*u))/2]};
-  const a=fr(ys),bt=fr(yb-th);
-  const lab=(x,y,t,an)=>'<text x="'+x+'" y="'+y+'" font-size="'+fs+'" text-anchor="'+(an||'middle')+'">'+t+'</text>';
-  let s='<polygon points="'+a[0]+','+ys+' '+a[1]+','+ys+' '+bt[1]+','+(yb-th)+' '+bt[0]+','+(yb-th)+'" fill="var(--soil)" fill-opacity=".55"/>';
-  s+='<polyline points="'+xl+','+oy+' '+xbl+','+yb+' '+xbr+','+yb+' '+xr+','+oy+'" fill="none" stroke="currentColor" stroke-width="'+sk+'" stroke-linejoin="round"/>';
-  s+='<line x1="'+xl+'" y1="'+oy+'" x2="'+xr+'" y2="'+oy+'" stroke="currentColor" stroke-width="'+fs/12+'" stroke-dasharray="'+fs/3+' '+fs/3+'"/>';
-  s+=lab(ox+Wt/2,oy-fs*0.6,(rnd?'Ø miệng ':'Rộng miệng ')+f(Wt)+' cm')+lab(ox+Wt/2,yb+fs*1.4,(rnd?'Ø đáy ':'Rộng đáy ')+f(Wb)+' cm');
-  s+=lab(xl-fs*0.6,oy+H/2,'cao '+f(H)+' cm','end')+lab(ox+Wt/2,(ys+yb)/2,'đất '+f(g.Sd)+' cm');
-  $('csbox').innerHTML='<svg viewBox="0 0 '+vw+' '+vh+'" style="width:100%;height:auto">'+s+'</svg>'}
- // ---- nhìn từ trên
- {const rcT=rnd?g.rt:g.rt/Math.cos(PI/n),rcB=rnd?g.rb:g.rb/Math.cos(PI/n),fs=rcT/9,sz=rcT*2+fs*4,c=sz/2;
-  const poly=R=>{let p=[];for(let i=0;i<n;i++){const a=-PI/2+PI/n+2*PI*i/n;p.push((c+R*Math.cos(a)).toFixed(2)+','+(c-R*Math.sin(a)).toFixed(2))}return p.join(' ')};
-  let s=rnd?'<circle cx="'+c+'" cy="'+c+'" r="'+g.rt+'" fill="var(--fill)" stroke="currentColor" stroke-width="'+fs/8+'"/><circle cx="'+c+'" cy="'+c+'" r="'+g.rb+'" fill="none" stroke="currentColor" stroke-width="'+fs/10+'" stroke-dasharray="'+fs/3+' '+fs/3+'"/>':
-   '<polygon points="'+poly(rcT)+'" fill="var(--fill)" stroke="currentColor" stroke-width="'+fs/8+'" stroke-linejoin="round"/><polygon points="'+poly(rcB)+'" fill="none" stroke="currentColor" stroke-width="'+fs/10+'" stroke-dasharray="'+fs/3+' '+fs/3+'"/>';
-  s+='<text x="'+c+'" y="'+(c+fs*0.4)+'" font-size="'+fs*1.1+'" text-anchor="middle">'+(rnd?'Ø '+f(T)+' / '+f(B):f(T)+' / '+f(B)+' cm')+'</text>';
-  $('planbox').innerHTML='<svg viewBox="0 0 '+sz+' '+sz+'" style="width:100%;max-height:300px">'+s+'</svg>'}
- // ---- kết quả
- const phi=Math.atan2(g.dr,g.H),psi=2*PI/n,dih=180-Math.acos(Math.cos(phi)**2*Math.cos(psi)+Math.sin(phi)**2)*180/PI;
- $('res').innerHTML=
- '<div>'+(rnd?'Đường kính đáy / miệng':'Cạnh đáy / miệng')+'</div><b>'+f(B)+' / '+f(T)+' cm</b>'+
- '<div>Cao từ miệng xuống đáy (thẳng đứng)</div><b>'+f(g.H)+' cm</b>'+
- '<div>Cao dọc mặt vách nghiêng</div><b>'+f(hp)+' cm</b>'+
- '<div>Thể tích trong</div><b>'+f(g.Vi)+' lít</b>'+
- '<div>Đất dùng được (chừa '+f(fl*100,0)+'% mép)</div><b>'+f(g.Vu)+' lít</b>'+
- '<div>Độ sâu đất từ mặt xuống đáy</div><b>'+f(g.Sd)+' cm</b>'+
- (rnd?'':'<div>Nếu cắt rời '+n+' tấm hình thang</div><b>'+f(B)+' / '+f(T)+' × '+f(hp)+' cm</b><div>Cạnh bên mỗi tấm hình thang</div><b>'+f(L)+' cm</b><div>Vát mép nối (nghiêng lưỡi cưa)</div><b>'+f(90-dih/2)+'°</b>');
- // ---- so sánh cùng tấm
- {const opts=[[3,'p','Tam giác'],[4,'p','Vuông'],[5,'p','Ngũ giác'],[6,'p','Lục giác'],[8,'p','Bát giác'],[n,'r',roll?'Tròn (cuộn cắt)':'Tròn']];
-  const rs=opts.map(o=>({name:o[2],n:o[0],sh:o[1],g:geom(o[1],o[0],Pb,Pt,o[1]==='r'?hp:hp0,th,fl)})).filter(o=>o.g);
-  const sq=rs.find(o=>o.name==='Vuông'),mx=Math.max(...rs.map(o=>o.g.Vu));
-  let h='<div class="hd">Dạng</div><div class="hd">Đất (lít)</div><div class="hd">Cao (cm)</div><div class="hd">So với vuông</div>';
-  rs.forEach(o=>{const cur=(rnd&&o.sh==='r')||(!rnd&&o.sh==='p'&&o.n===n),best=o.g.Vu===mx,cl=(cur?'cur ':'')+(best?'best':'');
-   h+='<div class="'+cl+'">'+o.name+(cur?' (đang chọn)':'')+(best?' ★':'')+'</div><div class="'+cl+'">'+f(o.g.Vu)+'</div><div class="'+cl+'">'+f(o.g.H)+'</div><div class="'+cl+'">'+(sq?(o.g.Vu/sq.g.Vu*100).toFixed(0)+'%':'')+'</div>'});
-  $('cmp').innerHTML=h;
-  $('cmpnote').textContent='Cùng một tấm (cùng chu vi miệng '+f(Pt)+' cm, chu vi đáy '+f(Pb)+' cm, cao tấm '+f(hp0)+' cm). Dấu ★ là dạng chứa nhiều đất nhất. Nhiều cạnh hơn thì chứa nhiều hơn, tròn là giới hạn. Nhưng tròn khó làm hơn.'+(roll?' Cuộn rồi cắt mất bớt chiều cao nên chậu tròn có thể thấp và ít đất hơn.':' Phải gấp nhiều nếp nhỏ hoặc cắt cong.')}
- // ---- cây trồng
- const Vu=g.Vu,Sd=g.Sd;
- const all=BASE.concat(custom.map((c,i)=>Object.assign({mine:true,idx:i},c)));
- const lab=['Không hợp','Tạm được','Tốt'];
- const rows=all.map(p=>{const rv=rate(Vu,p.lo,p.hi),rd=Sd>=p.dp?2:Sd>=0.6*p.dp?1:0;return {p:p,rv:rv,rd:rd,r:Math.min(rv,rd)}}).sort((x,y)=>y.r-x.r);
- const hide=$('hideBad').checked;
- $('pl').innerHTML=rows.filter(o=>!(hide&&o.r===0)).map(o=>{
-  const p=o.p;let nt=[];
-  if(o.rv<2)nt.push('thể tích '+f(Vu)+' lít, tốt từ '+p.hi+' lít');
-  if(o.rd<2)nt.push('đất sâu '+f(Sd)+' cm, tốt từ '+p.dp+' cm');
-  if(!nt.length)nt.push(p.big&&Vu>=p.big[0]?p.big[1]:(p.note||'1 cây/chậu'));
-  return '<div>'+p.n+(p.mine?' (của bạn)<button class="lk" onclick="delPlant('+p.idx+')">xóa</button>':'')+'<span class="sub">Rễ ăn sâu khoảng '+p.root+' cm nếu trồng đất; chậu nên có đất sâu từ '+p.dp+' cm</span><span class="sub">'+nt.join(' · ')+'</span></div><div class="tag t'+o.r+'">'+lab[o.r]+'</div>'}).join('')||'<div>Không có cây nào hợp với chậu này.</div><div></div>';
- $('plnote').textContent='Theo '+f(Vu)+' lít đất dùng được. Xếp hạng lấy mức thấp hơn giữa thể tích và độ sâu đất. Cây ăn trái cần chậu lớn, chậu nhỏ chỉ giữ cây được vài năm đầu rồi phải thay chậu. Số đo rễ là ước lượng; trong chậu rễ cuộn lại và ăn nông hơn ngoài đất. "Tạm được" nghĩa là cây nhỏ hơn, ít quả hơn, phải tưới nhiều.'+(g.H<20?' Chậu sâu dưới 20 cm khá nông, đất mặt khô nhanh, nên phủ gốc bằng rơm hoặc trấu.':'');
+function read(){
+  S.forEach(([k])=>{P[k]=+$(k).value;$('o_'+k).textContent=$(k).value});
+  P.txt=$('txt').value;P.col=$('col').value;P.stag=$('stag').checked;P.grid=$('grid').checked;
+  try{localStorage.setItem(KEY,JSON.stringify({...Object.fromEntries(S.map(([k])=>[k,$(k).value])),txt:P.txt,col:P.col,stag:P.stag,grid:P.grid}))}catch(e){}
+  draw();
 }
-['sw','sl','ov','hc','shape','meth','b','t','n','np','th','fill','hideBad'].forEach(i=>$(i).addEventListener('input',calc));
-calc();
-</script></body></html>
+
+function resize(){const r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;draw()}
+new ResizeObserver(resize).observe($('wrap'));
+
+function draw(g,W,H){
+  const ctx=g||c.getContext('2d');W=W||c.width;H=H||c.height;
+  if(!g)ctx.clearRect(0,0,W,H);
+  if(!P.txt&&!P.grid)return;
+  const cw=W/P.cols,ch=H/P.rows,fs=H*P.size/100;
+  ctx.save();
+  ctx.translate(W/2,H/2);ctx.rotate(P.gang*Math.PI/180);ctx.translate(-W/2,-H/2);
+  ctx.globalAlpha=P.op/100;
+  ctx.font='bold '+fs+'px system-ui,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=P.col;ctx.strokeStyle=P.col;ctx.lineWidth=Math.max(1,W/600);
+  ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=fs*.15;
+  const t=P.gang*Math.PI/180,ca=Math.abs(Math.cos(t)),sa=Math.abs(Math.sin(t));
+  const ex=Math.ceil((W*ca+H*sa-W)/2/cw)+1,ey=Math.ceil((W*sa+H*ca-H)/2/ch)+1;
+  for(let j=-ey;j<P.rows+ey;j++){
+    const off=(P.stag&&((j%2)+2)%2)?cw/2:0;
+    for(let i=-ex;i<P.cols+ex;i++){
+      const x=off?i*cw:(i+.5)*cw,y=(j+.5)*ch;
+      if(P.grid)ctx.strokeRect(x-cw/2,j*ch,cw,ch);
+      ctx.save();ctx.translate(x,y);ctx.rotate(P.ang*Math.PI/180);
+      ctx.fillText(P.txt,0,0);ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
+document.querySelectorAll('#sl input,#txt,#col,#stag,#grid').forEach(e=>e.addEventListener('input',read));
+
+const fmt=t=>{t=t||0;return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')};
+$('pp').onclick=()=>v.paused?v.play():v.pause();
+v.onplay=()=>$('pp').textContent='⏸';v.onpause=()=>$('pp').textContent='▶';
+$('seek').oninput=e=>{if(v.duration)v.currentTime=v.duration*e.target.value/1000};
+v.ontimeupdate=()=>{$('time').textContent=fmt(v.currentTime)+' / '+fmt(v.duration);if(v.duration)$('seek').value=v.currentTime/v.duration*1000};
+const im=$('im');
+im.onload=resize;
+function showImg(src){v.pause();v.style.display='none';im.src=src;im.style.display='block';$('ctl').style.display='none'}
+function showVid(src){im.style.display='none';v.style.display='block';$('ctl').style.display='flex';v.src=src;v.load()}
+const isImg=(t,n)=>(t||'').startsWith('image/')||/\.(png|jpe?g|gif|webp|avif|svg)(\?|$)/i.test(n||'');
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f);isImg(f.type,f.name)?showImg(u):showVid(u)};
+$('load').onclick=()=>{const u=$('url').value.trim();if(u)isImg('',u)?showImg(u):showVid(u)};
+$('demo').onclick=()=>{
+  const k=document.createElement('canvas');k.width=1280;k.height=720;const g=k.getContext('2d');
+  const gr=g.createLinearGradient(0,0,1280,720);gr.addColorStop(0,'#1e3c72');gr.addColorStop(.5,'#2a9d8f');gr.addColorStop(1,'#e9c46a');
+  g.fillStyle=gr;g.fillRect(0,0,1280,720);showImg(k.toDataURL('image/png'));
+};
+const sv=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
+const msg=t=>$('msg').textContent=t;
+$('png').onclick=()=>{
+  let src,w,h;
+  if(im.style.display!=='none'&&im.naturalWidth){src=im;w=im.naturalWidth;h=im.naturalHeight}
+  else if(v.videoWidth){src=v;w=v.videoWidth;h=v.videoHeight}
+  else return msg('Chưa có ảnh hoặc video.');
+  try{
+    const k=document.createElement('canvas');k.width=w;k.height=h;const g=k.getContext('2d');
+    g.drawImage(src,0,0,w,h);draw(g,w,h);
+    k.toBlob(b=>b?sv(b,'stamped.png'):msg('Không xuất được ảnh.'),'image/png');
+  }catch(e){msg('Không xuất được: nguồn ảnh/video bị chặn CORS. Hãy chọn file từ máy.')}
+};
+let rec=null;
+$('rend').onclick=async()=>{
+  if(rec){rec.stop();return}
+  if(v.style.display==='none'||!v.videoWidth)return msg('Hãy chọn video trước.');
+  if($('mode').value!=='rt')return fast(+$('mode').value.slice(1));
+  if(!window.MediaRecorder)return msg('Trình duyệt này không hỗ trợ MediaRecorder.');
+  const w=v.videoWidth&~1,h=v.videoHeight&~1;
+  const k=document.createElement('canvas');k.width=w;k.height=h;const g=k.getContext('2d');
+  let out;
+  try{out=k.captureStream(30)}catch(e){return msg('Trình duyệt không hỗ trợ captureStream.')}
+  if($('aud').checked){try{const as=v.captureStream?v.captureStream():null;if(as)as.getAudioTracks().forEach(t=>out.addTrack(t))}catch(e){}}
+  const mt=['video/mp4;codecs=avc1','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  const loopWas=v.loop,chunks=[];let run=true;
+  try{rec=new MediaRecorder(out,mt?{mimeType:mt,videoBitsPerSecond:8e6}:{videoBitsPerSecond:8e6})}catch(e){rec=null;return msg('Không tạo được bộ ghi video.')}
+  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  rec.onstop=()=>{
+    run=false;v.pause();v.loop=loopWas;v.onended=null;rec=null;
+    $('rend').textContent='Render video & tải về';$('prog').value=0;
+    const type=(chunks[0]&&chunks[0].type)||mt||'video/webm';
+    sv(new Blob(chunks,{type}),'stamped.'+(type.includes('mp4')?'mp4':'webm'));
+    msg('Xong. Đã tải file về.');
+  };
+  v.loop=false;v.pause();v.currentTime=0;
+  const frame=()=>{if(!run)return;g.drawImage(v,0,0,w,h);draw(g,w,h);if(v.duration)$('prog').value=v.currentTime/v.duration;requestAnimationFrame(frame)};
+  v.onended=()=>{if(rec)rec.stop()};
+  rec.start(500);
+  $('rend').textContent='Dừng & lưu';msg('Đang render...');
+  try{await v.play()}catch(e){rec.stop();return}
+  frame();
+};
+const WC=!!(window.VideoEncoder&&window.Mp4Muxer&&window.VideoFrame);
+if(!WC)[...$('mode').options].forEach(o=>{if(o.value!=='rt')o.disabled=true});
+$('mode').value=WC?'w4':'rt';
+$('mode').onchange=()=>msg($('mode').value==='rt'?'Thời gian thực: video dài bao nhiêu thì render bấy nhiêu, giữ tab ở phía trước.':'WebCodecs: nhanh hơn thời gian thực, xuất mp4, không cần nghe tiếng. x càng cao càng dễ rớt khung.');
+$('mode').onchange();
+
+async function fast(sp){
+  if(!WC)return msg('Trình duyệt không hỗ trợ WebCodecs.');
+  if(!v.requestVideoFrameCallback)return msg('Trình duyệt thiếu requestVideoFrameCallback.');
+  const w=v.videoWidth&~1,h=v.videoHeight&~1;
+  const k=document.createElement('canvas');k.width=w;k.height=h;const g=k.getContext('2d');
+  let cfg=null;
+  for(const codec of ['avc1.640033','avc1.640028','avc1.42001f']){
+    const c0={codec,width:w,height:h,bitrate:8e6,framerate:30};
+    try{if((await VideoEncoder.isConfigSupported(c0)).supported){cfg=c0;break}}catch(e){}
+  }
+  if(!cfg)return msg('Không có bộ mã hóa H.264 phù hợp.');
+  let ab=null,ac=null,nch=0;
+  if($('aud').checked){
+    try{
+      ab=await new AudioContext().decodeAudioData(await (await fetch(v.currentSrc)).arrayBuffer());
+      nch=Math.min(2,ab.numberOfChannels);
+      ac={codec:'mp4a.40.2',sampleRate:ab.sampleRate,numberOfChannels:nch,bitrate:128000};
+      if(!(await AudioEncoder.isConfigSupported(ac)).supported)throw 0;
+    }catch(e){ab=null;ac=null}
+  }
+  const target=new Mp4Muxer.ArrayBufferTarget();
+  const mux=new Mp4Muxer.Muxer({target,fastStart:'in-memory',video:{codec:'avc',width:w,height:h},...(ab?{audio:{codec:'aac',numberOfChannels:nch,sampleRate:ab.sampleRate}}:{})});
+  const ve=new VideoEncoder({output:(ch,m)=>mux.addVideoChunk(ch,m),error:e=>msg('Lỗi mã hóa: '+e.message)});
+  ve.configure(cfg);
+  let ae=null;
+  if(ab){
+    ae=new AudioEncoder({output:(ch,m)=>mux.addAudioChunk(ch,m),error:console.error});ae.configure(ac);
+    const N=ab.length,sr=ab.sampleRate;
+    for(let o=0;o<N;o+=sr){
+      const n=Math.min(sr,N-o),d=new Float32Array(n*nch);
+      for(let q=0;q<nch;q++)d.set(ab.getChannelData(q).subarray(o,o+n),q*n);
+      const ad=new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:n,numberOfChannels:nch,timestamp:Math.round(o/sr*1e6),data:d});
+      ae.encode(ad);ad.close();
+    }
+  } else if($('aud').checked) msg('Không xử lý được âm thanh, sẽ xuất video không tiếng.');
+  const was={loop:v.loop,muted:v.muted,rate:v.playbackRate};
+  v.loop=false;v.muted=true;v.pause();v.currentTime=0;
+  let run=true,last=-1,n=0;const t0=performance.now();
+  const finish=async()=>{
+    if(!run)return;run=false;
+    v.pause();v.onended=null;v.loop=was.loop;v.muted=was.muted;v.playbackRate=was.rate;
+    msg('Đang hoàn tất file...');
+    try{
+      await ve.flush();if(ae)await ae.flush();mux.finalize();
+      sv(new Blob([target.buffer],{type:'video/mp4'}),'stamped.mp4');
+      msg('Xong trong '+((performance.now()-t0)/1000).toFixed(0)+' giây. Đã tải file về.');
+    }catch(e){msg('Lỗi khi ghép file: '+e.message)}
+    rec=null;$('rend').textContent='Render video & tải về';$('prog').value=0;
+  };
+  rec={stop:finish};
+  const onf=(now,meta)=>{
+    if(!run)return;
+    if(meta.mediaTime>last){
+      last=meta.mediaTime;
+      g.drawImage(v,0,0,w,h);draw(g,w,h);
+      const vf=new VideoFrame(k,{timestamp:Math.round(meta.mediaTime*1e6)});
+      ve.encode(vf,{keyFrame:n++%90===0});vf.close();
+      if(v.duration)$('prog').value=meta.mediaTime/v.duration;
+      if(ve.encodeQueueSize>8)v.pause();
+    }
+    v.requestVideoFrameCallback(onf);
+  };
+  ve.addEventListener('dequeue',()=>{if(run&&v.paused&&!v.ended&&ve.encodeQueueSize<3)v.play().catch(()=>{})});
+  v.onended=finish;
+  v.playbackRate=sp;
+  $('rend').textContent='Dừng & lưu';msg('Đang render x'+sp+'...');
+  try{await v.play()}catch(e){await finish();return}
+  v.requestVideoFrameCallback(onf);
+}
+read();
+</script>
+</body>
+</html>
