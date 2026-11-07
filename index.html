@@ -188,7 +188,7 @@ $('rend').onclick=async()=>{
 const WC=!!(window.VideoEncoder&&window.Mp4Muxer&&window.VideoFrame);
 if(!WC)[...$('mode').options].forEach(o=>{if(o.value!=='rt')o.disabled=true});
 $('mode').value=WC?'w4':'rt';
-$('mode').onchange=()=>msg($('mode').value==='rt'?'Thời gian thực: video dài bao nhiêu thì render bấy nhiêu, giữ tab ở phía trước.':'WebCodecs: nhanh hơn thời gian thực, xuất mp4, không cần nghe tiếng. x càng cao càng dễ rớt khung.');
+$('mode').onchange=()=>msg($('mode').value==='rt'?'Thời gian thực: video dài bao nhiêu thì render bấy nhiêu, giữ tab ở phía trước.':'WebCodecs: x1 = giữ nguyên tốc độ; x2/x4/x8 = tua nhanh, clip xuất ra ngắn lại tương ứng (không có âm thanh).');
 $('mode').onchange();
 
 async function fast(sp){
@@ -203,7 +203,8 @@ async function fast(sp){
   }
   if(!cfg)return msg('Không có bộ mã hóa H.264 phù hợp.');
   let ab=null,ac=null,nch=0;
-  if($('aud').checked){
+  const turbo=sp>1;
+  if($('aud').checked&&!turbo){
     try{
       ab=await new AudioContext().decodeAudioData(await (await fetch(v.currentSrc)).arrayBuffer());
       nch=Math.min(2,ab.numberOfChannels);
@@ -225,10 +226,10 @@ async function fast(sp){
       const ad=new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:n,numberOfChannels:nch,timestamp:Math.round(o/sr*1e6),data:d});
       ae.encode(ad);ad.close();
     }
-  } else if($('aud').checked) msg('Không xử lý được âm thanh, sẽ xuất video không tiếng.');
+  } else if($('aud').checked&&!turbo) msg('Không xử lý được âm thanh, sẽ xuất video không tiếng.');
   const was={loop:v.loop,muted:v.muted,rate:v.playbackRate};
   v.loop=false;v.muted=true;v.pause();v.currentTime=0;
-  let run=true,last=-1,n=0;const t0=performance.now();
+  let run=true,last=-1,n=0,nextT=0,oi=0;const OFPS=30;const t0=performance.now();
   const finish=async()=>{
     if(!run)return;run=false;
     v.pause();v.onended=null;v.loop=was.loop;v.muted=was.muted;v.playbackRate=was.rate;
@@ -246,10 +247,12 @@ async function fast(sp){
   rec={stop:finish};
   const onf=(now,meta)=>{
     if(!run)return;
-    if(meta.mediaTime>last){
+    if(meta.mediaTime>last&&(!turbo||meta.mediaTime>=nextT-0.002)){
       last=meta.mediaTime;
+      if(turbo)nextT+=sp/OFPS;
       g.drawImage(v,0,0,w,h);draw(g,w,h);
-      const vf=new VideoFrame(k,{timestamp:Math.round(meta.mediaTime*1e6)});
+      const ts=turbo?Math.round(oi++*1e6/OFPS):Math.round(meta.mediaTime*1e6);
+      const vf=new VideoFrame(k,{timestamp:ts});
       ve.encode(vf,{keyFrame:n++%90===0});vf.close();
       if(v.duration)$('prog').value=meta.mediaTime/v.duration;
       if(ve.encodeQueueSize>8)v.pause();
